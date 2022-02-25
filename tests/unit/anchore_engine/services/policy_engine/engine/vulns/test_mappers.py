@@ -2,12 +2,12 @@ import pytest
 
 from anchore_engine.common.models.policy_engine import NVDReference
 from anchore_engine.services.policy_engine.engine.vulns.mappers import (
-    ENGINE_DISTRO_MAPPERS,
     ENGINE_PACKAGE_MAPPERS,
     GRYPE_PACKAGE_MAPPERS,
     EngineGrypeDBMapper,
     JavaMapper,
     VulnerabilityMapper,
+    lookup_distro_mapper,
 )
 
 
@@ -24,10 +24,13 @@ from anchore_engine.services.policy_engine.engine.vulns.mappers import (
         pytest.param("sles", "sles", "sles", id="sles"),
         pytest.param("windows", "windows", "", id="windows"),
         pytest.param("rocky", "rockylinux", "fedora", id="rocky"),
+        pytest.param("unknown", "unknown", "unknown", id="unknown"),
+        pytest.param("fedora", "fedora", "fedora", id="fedora"),
+        pytest.param("Mint", "Mint", "Mint", id="Mint"),
     ],
 )
 def test_engine_distro_mappers(test_distro, expected_os, expected_like_os):
-    mapper = ENGINE_DISTRO_MAPPERS.get(test_distro)
+    mapper = lookup_distro_mapper(test_distro, test_distro)
     assert mapper.grype_os == expected_os
     assert mapper.grype_like_os == expected_like_os
     assert mapper.to_grype_distro("0") == {

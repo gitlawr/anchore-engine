@@ -698,9 +698,6 @@ ENGINE_DISTRO_MAPPERS = {
     "rocky": DistroMapper(
         engine_distro="rocky", grype_os="rockylinux", grype_like_os="fedora"
     ),
-    "unknown": DistroMapper(
-        engine_distro="unknown", grype_os="unknown", grype_like_os="unknown"
-    ),
 }
 
 
@@ -758,11 +755,25 @@ GRYPE_PACKAGE_MAPPERS = {
 GRYPE_MATCH_MAPPER = VulnerabilityMapper()
 
 
+def lookup_distro_mapper(engine_distro: str, engine_like: str) -> DistroMapper:
+    """
+    Return a distro mapper for the given distro
+
+    :param engine_distro:
+    :param engine_like:
+    :return:
+    """
+    distro_mapper = ENGINE_DISTRO_MAPPERS.get(
+        engine_distro.lower(),
+        DistroMapper(engine_distro, engine_distro, engine_like),
+    )
+    return distro_mapper
+
+
 def image_content_to_grype_sbom(image: Image, image_content_map: Dict) -> Dict:
 
     # select the distro
-    distro_name = (image.distro_name if image.distro_name else "unknown").lower()
-    distro_mapper = ENGINE_DISTRO_MAPPERS.get(distro_name)
+    distro_mapper = lookup_distro_mapper(image.distro_name, image.like_distro)
     if not distro_mapper:
         log.error(
             "No distro mapper found for %s. Cannot generate sbom", image.distro_name
